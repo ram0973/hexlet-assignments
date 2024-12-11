@@ -85,8 +85,10 @@ class ApplicationTest {
                 .andExpect(status().isOk())
                 .andReturn();
         var body = result.getResponse().getContentAsString();
-        assertThat(body).contains(task.getTitle());
-        assertThat(body).contains(task.getDescription());
+        assertThatJson(body).and(
+                v -> v.node("title").isEqualTo(task.getTitle()),
+                v -> v.node("description").isEqualTo(task.getDescription())
+        );
     }
 
     @Test
