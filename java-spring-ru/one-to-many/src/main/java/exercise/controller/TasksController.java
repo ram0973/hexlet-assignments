@@ -5,6 +5,7 @@ import java.util.List;
 import exercise.dto.*;
 import exercise.mapper.TaskMapper;
 import exercise.model.Task;
+import exercise.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,6 +28,9 @@ public class TasksController {
     // BEGIN
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TaskMapper taskMapper;
@@ -62,17 +66,22 @@ public class TasksController {
     public TaskDTO put(@PathVariable long id, @Valid @RequestBody TaskUpdateDTO taskData) {
         var task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
+        var user = userRepository.findById(taskData.getAssigneeId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         taskMapper.update(taskData, task);
+        task.setAssignee(user);
         taskRepository.save(task);
-        return taskMapper.map(task);
+        TaskDTO taskDto = taskMapper.map(task);
+        return taskDto;
     }
 
     @DeleteMapping(path = "/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable long id) {
-        var task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
-        taskRepository.delete(task);
+        //var task = taskRepository.findById(id)
+        //        .orElseThrow(() -> new ResourceNotFoundException("Task with id " + id + " not found"));
+        //taskRepository.delete(task);
+        taskRepository.deleteById(id);
     }
     //DELETE /tasks/{id} – удаление задачи
     // END
